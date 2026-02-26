@@ -17,6 +17,7 @@
            LABEL RECORDS ARE STANDARD
            RECORD CONTAINS 130 CHARACTERS
            BLOCK CONTAINS 130 CHARACTERS.
+
        01 CUSTOMER-MASTER-RECORD.
           05 CM-BRANCH-NUMBER      PIC 9(2).
           05 CM-SALESREP-NUMBER    PIC 9(2).
@@ -50,10 +51,6 @@
        01 TOTAL-FIELDS.
           05 GRAND-TOTAL-THIS-YTD  PIC S9(7)V99      VALUE ZERO.
           05 GRAND-TOTAL-LAST-YTD  PIC S9(7)V99      VALUE ZERO.
-
-       01 CALCULATED-FIELDS.
-          05 WS-CHANGE-AMOUNT      PIC S9(7)V99.
-          05 WS-CHANGE-PERCENT     PIC S9(5)V99.
 
        01 CURRENT-DATE-AND-TIME.
           05 CD-YEAR               PIC 9999.
@@ -123,18 +120,34 @@
 
 
        01 CUSTOMER-LINE.
+          05 FILLER                PIC X(2)  VALUE SPACE.
           05 CL-BRANCH-NUMBER      PIC 9(2).
-          05 FILLER                PIC X(5)          VALUE SPACE.
+          05 FILLER                PIC X(5)  VALUE SPACE.
           05 CL-SALESREP-NUMBER    PIC 9(2).
-          05 FILLER                PIC X(5)          VALUE SPACE.
+          05 FILLER                PIC X(5)  VALUE SPACE.
           05 CL-CUSTOMER-NUMBER    PIC 9(5).
-          05 FILLER                PIC X(2)          VALUE SPACE.
+          05 FILLER                PIC X(2)  VALUE SPACE.
           05 CL-CUSTOMER-NAME      PIC X(20).
-          05 FILLER                PIC X(3)          VALUE SPACE.
+          05 FILLER                PIC X(3)  VALUE SPACE.
           05 CL-SALES-THIS-YTD     PIC ZZ,ZZ9.99-.
-          05 FILLER                PIC X(4)          VALUE SPACE.
+          05 FILLER                PIC X(4)  VALUE SPACE.
           05 CL-SALES-LAST-YTD     PIC ZZ,ZZ9.99-.
-          05 FILLER                PIC X(78)         VALUE SPACE.
+          05 FILLER                PIC X(4)  VALUE SPACE.
+          05 CL-CHANGE-AMOUNT      PIC ZZ,ZZ9.99-.
+          05 FILLER                PIC X(3)  VALUE SPACE.
+          05 CL-CHANGE-PERCENT     PIC ZZ9.9-.
+          05 FILLER                PIC X(41) VALUE SPACE.
+
+       01  DASHED-TOTAL-LINE.
+           05  FILLER              PIC X(40) VALUE SPACE.
+           05  FILLER              PIC X(13) VALUE ALL '='.
+           05  FILLER              PIC X(1)  VALUE SPACE.
+           05  FILLER              PIC X(13) VALUE ALL '='.
+           05  FILLER              PIC X(1)  VALUE SPACE.
+           05  FILLER              PIC X(13) VALUE ALL '='.
+           05  FILLER              PIC X(3)  VALUE SPACE.
+           05  FILLER              PIC X(5)  VALUE ALL '='.
+           05  FILLER              PIC X(55) VALUE SPACE.
 
        01  GRAND-TOTAL-LINE.
            05  FILLER              PIC X(40)    VALUE SPACE.
