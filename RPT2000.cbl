@@ -37,7 +37,7 @@
 
        01 SWITCHES.
           05 CUSTMAST-EOF-SWITCH   PIC X             VALUE "N".
-         
+
        01 CALCULATED-FIELDS.
           05 CHANGE-AMOUNT         PIC s9(5)V99.
 
