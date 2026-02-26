@@ -2,6 +2,13 @@
 
        PROGRAM-ID. RPT2000.
 
+       *  Programmer: Garrett Finke
+       *  DATE: 2026.02.25
+       *  This produces a Year-To-Date Sales Report. It prints customer
+       *  sales for the current and previous year, calculates the
+       *  change amount and percentage, and displays grand totals
+       *  for all qualifying customers.
+
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
 
@@ -17,6 +24,7 @@
            LABEL RECORDS ARE STANDARD
            RECORD CONTAINS 130 CHARACTERS
            BLOCK CONTAINS 130 CHARACTERS.
+
        01 CUSTOMER-MASTER-RECORD.
           05 CM-BRANCH-NUMBER      PIC 9(2).
           05 CM-SALESREP-NUMBER    PIC 9(2).
@@ -37,6 +45,9 @@
 
        01 SWITCHES.
           05 CUSTMAST-EOF-SWITCH   PIC X             VALUE "N".
+
+       01 CALCULATED-FIELDS.
+          05 CHANGE-AMOUNT         PIC s9(5)V99.
 
        01 PRINT-FIELDS.
           05 PAGE-COUNT            PIC S9(3)         VALUE ZERO.
@@ -85,14 +96,12 @@
           05 FILLER                PIC X(10)         VALUE "RPT2000".
           05 FILLER                PIC X(52)         VALUE SPACE.
 
-       01 HEADING-LINE-3.
-          05 FILLER                PIC X(20)         VALUE
-                "CUST                ".
-          05 FILLER                PIC X(20)         VALUE
-                "            SALES   ".
-          05 FILLER                PIC X(20)         VALUE
-                "      SALES         ".
-          05 FILLER                PIC X(72)         VALUE SPACE.
+       05  FILLER      PIC X(20)   VALUE "BRANCH SALES CUST   ".
+           05  FILLER      PIC X(14)    VALUE ALL' '.
+           05  FILLER      PIC X(20)   VALUE "            SALES   ".
+           05  FILLER      PIC X(19)   VALUE "      SALES        ".
+           05  FILLER      PIC X(20)   VALUE "CHANGE     CHANGE   ".
+           05  FILLER      PIC X(26)   VALUE SPACE.
 
        01 HEADING-LINE-4.
           05 FILLER                PIC X(20)         VALUE
@@ -119,26 +128,46 @@
           05 FILLER                PIC X(52)         VALUE ALL "-".
 
 
-       01 CUSTOMER-LINE.
-          05 CL-BRANCH-NUMBER      PIC 9(2).
-          05 FILLER                PIC X(5)          VALUE SPACE.
-          05 CL-SALESREP-NUMBER    PIC 9(2).
-          05 FILLER                PIC X(5)          VALUE SPACE.
-          05 CL-CUSTOMER-NUMBER    PIC 9(5).
-          05 FILLER                PIC X(2)          VALUE SPACE.
-          05 CL-CUSTOMER-NAME      PIC X(20).
-          05 FILLER                PIC X(3)          VALUE SPACE.
-          05 CL-SALES-THIS-YTD     PIC ZZ,ZZ9.99-.
-          05 FILLER                PIC X(4)          VALUE SPACE.
-          05 CL-SALES-LAST-YTD     PIC ZZ,ZZ9.99-.
-          05 FILLER                PIC X(78)         VALUE SPACE.
+          01  CUSTOMER-LINE.
+       05  FILLER              PIC X(2)  VALUE SPACE.
+           05  CL-BRANCH-NUMBER    PIC 99.   
+           05  FILLER              PIC X(4)  VALUE SPACE.
+           05  CL-SALESREP-NUMBER  PIC 99.   
+           05  FILLER              PIC X(3)  VALUE SPACE.
+           05  CL-CUSTOMER-NUMBER  PIC 9(5).
+           05  FILLER              PIC X(2)     VALUE SPACE.
+           05  CL-CUSTOMER-NAME    PIC X(20).
+           05  FILLER              PIC X(3)     VALUE SPACE.
+           05  CL-SALES-THIS-YTD   PIC ZZ,ZZ9.99-.
+           05  FILLER              PIC X(4)     VALUE SPACE.
+           05  CL-SALES-LAST-YTD   PIC ZZ,ZZ9.99-.
+           05  FILLER              PIC X(4)     VALUE SPACE.
+           05  CL-CHANGE-AMOUNT    PIC ZZ,ZZ9.99-.
+           05  FILLER              PIC X(3)     VALUE SPACE.
+           05  CL-CHANGE-PERCENT   PIC ZZ9.9-.
+           05  FILLER              PIC X(41)    VALUE SPACE.
 
-       01 GRAND-TOTAL-LINE.
-          05 FILLER                PIC X(27)         VALUE SPACE.
-          05 GTL-SALES-THIS-YTD    PIC Z,ZZZ,ZZ9.99-.
-          05 FILLER                PIC X(1)          VALUE SPACE.
-          05 GTL-SALES-LAST-YTD    PIC Z,ZZZ,ZZ9.99-.
-          05 FILLER                PIC X(78)         VALUE SPACE.
+       01  DASHED-TOTAL-LINE.
+           05  FILLER              PIC X(40)    VALUE SPACE.
+           05  FILLER              PIC X(13)     VALUE ALL'='.
+           05  FILLER              PIC X(1)     VALUE SPACE.
+           05  FILLER              PIC X(13)     VALUE ALL'='.
+           05  FILLER              PIC X(1)     VALUE SPACE.
+           05  FILLER              PIC X(13)     VALUE ALL'='.
+           05  FILLER              PIC X(3)     VALUE SPACE.
+           05  FILLER              PIC X(5)     VALUE ALL'='.
+           05  FILLER              PIC X(55)    VALUE SPACE.   
+
+       01  GRAND-TOTAL-LINE.
+           05  FILLER              PIC X(40)    VALUE SPACE.
+           05  GTL-SALES-THIS-YTD  PIC Z,ZZZ,ZZ9.99-.
+           05  FILLER              PIC X(1)     VALUE SPACE.
+           05  GTL-SALES-LAST-YTD  PIC Z,ZZZ,ZZ9.99-.
+           05  FILLER              PIC X(1)     VALUE SPACE.
+           05  GTL-CHANGE-AMOUNT   PIC Z,ZZZ,ZZ9.99-.
+           05  FILLER              PIC X(3)     VALUE SPACE.
+           05  GTL-CHANGE-PERCENT  PIC ZZ9.9-.
+           05  FILLER              PIC X(42)    VALUE SPACE.
 
        PROCEDURE DIVISION.
 
