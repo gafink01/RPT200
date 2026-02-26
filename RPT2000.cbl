@@ -2,13 +2,6 @@
 
        PROGRAM-ID. RPT2000.
 
-       *  Programmer: Garrett Finke
-       *  DATE: 2026.02.25
-       *  This produces a Year-To-Date Sales Report. It prints customer
-       *  sales for the current and previous year, calculates the
-       *  change amount and percentage, and displays grand totals
-       *  for all qualifying customers.
-
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
 
@@ -24,7 +17,6 @@
            LABEL RECORDS ARE STANDARD
            RECORD CONTAINS 130 CHARACTERS
            BLOCK CONTAINS 130 CHARACTERS.
-
        01 CUSTOMER-MASTER-RECORD.
           05 CM-BRANCH-NUMBER      PIC 9(2).
           05 CM-SALESREP-NUMBER    PIC 9(2).
@@ -45,7 +37,7 @@
 
        01 SWITCHES.
           05 CUSTMAST-EOF-SWITCH   PIC X             VALUE "N".
-
+         
        01 CALCULATED-FIELDS.
           05 CHANGE-AMOUNT         PIC s9(5)V99.
 
@@ -96,12 +88,14 @@
           05 FILLER                PIC X(10)         VALUE "RPT2000".
           05 FILLER                PIC X(52)         VALUE SPACE.
 
-       05  FILLER      PIC X(20)   VALUE "BRANCH SALES CUST   ".
-           05  FILLER      PIC X(14)    VALUE ALL' '.
-           05  FILLER      PIC X(20)   VALUE "            SALES   ".
-           05  FILLER      PIC X(19)   VALUE "      SALES        ".
-           05  FILLER      PIC X(20)   VALUE "CHANGE     CHANGE   ".
-           05  FILLER      PIC X(26)   VALUE SPACE.
+       01 HEADING-LINE-3.
+          05 FILLER                PIC X(20)         VALUE
+                "CUST                ".
+          05 FILLER                PIC X(20)         VALUE
+                "            SALES   ".
+          05 FILLER                PIC X(20)         VALUE
+                "      SALES         ".
+          05 FILLER                PIC X(72)         VALUE SPACE.
 
        01 HEADING-LINE-4.
           05 FILLER                PIC X(20)         VALUE
@@ -128,35 +122,19 @@
           05 FILLER                PIC X(52)         VALUE ALL "-".
 
 
-          01  CUSTOMER-LINE.
-       05  FILLER              PIC X(2)  VALUE SPACE.
-           05  CL-BRANCH-NUMBER    PIC 99.   
-           05  FILLER              PIC X(4)  VALUE SPACE.
-           05  CL-SALESREP-NUMBER  PIC 99.   
-           05  FILLER              PIC X(3)  VALUE SPACE.
-           05  CL-CUSTOMER-NUMBER  PIC 9(5).
-           05  FILLER              PIC X(2)     VALUE SPACE.
-           05  CL-CUSTOMER-NAME    PIC X(20).
-           05  FILLER              PIC X(3)     VALUE SPACE.
-           05  CL-SALES-THIS-YTD   PIC ZZ,ZZ9.99-.
-           05  FILLER              PIC X(4)     VALUE SPACE.
-           05  CL-SALES-LAST-YTD   PIC ZZ,ZZ9.99-.
-           05  FILLER              PIC X(4)     VALUE SPACE.
-           05  CL-CHANGE-AMOUNT    PIC ZZ,ZZ9.99-.
-           05  FILLER              PIC X(3)     VALUE SPACE.
-           05  CL-CHANGE-PERCENT   PIC ZZ9.9-.
-           05  FILLER              PIC X(41)    VALUE SPACE.
-
-       01  DASHED-TOTAL-LINE.
-           05  FILLER              PIC X(40)    VALUE SPACE.
-           05  FILLER              PIC X(13)     VALUE ALL'='.
-           05  FILLER              PIC X(1)     VALUE SPACE.
-           05  FILLER              PIC X(13)     VALUE ALL'='.
-           05  FILLER              PIC X(1)     VALUE SPACE.
-           05  FILLER              PIC X(13)     VALUE ALL'='.
-           05  FILLER              PIC X(3)     VALUE SPACE.
-           05  FILLER              PIC X(5)     VALUE ALL'='.
-           05  FILLER              PIC X(55)    VALUE SPACE.   
+       01 CUSTOMER-LINE.
+          05 CL-BRANCH-NUMBER      PIC 9(2).
+          05 FILLER                PIC X(5)          VALUE SPACE.
+          05 CL-SALESREP-NUMBER    PIC 9(2).
+          05 FILLER                PIC X(5)          VALUE SPACE.
+          05 CL-CUSTOMER-NUMBER    PIC 9(5).
+          05 FILLER                PIC X(2)          VALUE SPACE.
+          05 CL-CUSTOMER-NAME      PIC X(20).
+          05 FILLER                PIC X(3)          VALUE SPACE.
+          05 CL-SALES-THIS-YTD     PIC ZZ,ZZ9.99-.
+          05 FILLER                PIC X(4)          VALUE SPACE.
+          05 CL-SALES-LAST-YTD     PIC ZZ,ZZ9.99-.
+          05 FILLER                PIC X(78)         VALUE SPACE.
 
        01  GRAND-TOTAL-LINE.
            05  FILLER              PIC X(40)    VALUE SPACE.
@@ -196,14 +174,14 @@
 
            PERFORM 210-READ-CUSTOMER-RECORD.
            IF CUSTMAST-EOF-SWITCH = "N"
-              PERFORM 220-PRINT-CUSTOMER-LINE.
+               IF CM-SALES-THIS-YTD >= 10000
+                   PERFORM 220-PRINT-CUSTOMER-LINE.
 
        210-READ-CUSTOMER-RECORD.
 
            READ INPUT-CUSTMAST
-           AT END
-              MOVE "Y" TO CUSTMAST-EOF-SWITCH.
-
+               AT END
+                   MOVE "Y" TO CUSTMAST-EOF-SWITCH.
        220-PRINT-CUSTOMER-LINE.
 
            IF LINE-COUNT >= LINES-ON-PAGE
@@ -214,20 +192,31 @@
            MOVE CM-CUSTOMER-NAME TO CL-CUSTOMER-NAME.
            MOVE CM-SALES-THIS-YTD TO CL-SALES-THIS-YTD.
            MOVE CM-SALES-LAST-YTD TO CL-SALES-LAST-YTD.
+           COMPUTE CHANGE-AMOUNT =
+                CM-SALES-THIS-YTD - CM-SALES-LAST-YTD.
+           MOVE CHANGE-AMOUNT TO CL-CHANGE-AMOUNT.
+           IF   CM-SALES-LAST-YTD = ZERO
+           MOVE 999.9 TO CL-CHANGE-PERCENT
+           ELSE
+           COMPUTE CL-CHANGE-PERCENT ROUNDED =
+                   CHANGE-AMOUNT * 100 / CM-SALES-LAST-YTD
+           ON SIZE ERROR
+           MOVE 999.9 to CL-CHANGE-PERCENT.
            MOVE CUSTOMER-LINE TO PRINT-AREA.
            WRITE PRINT-AREA.
            ADD 1 TO LINE-COUNT.
            ADD CM-SALES-THIS-YTD TO GRAND-TOTAL-THIS-YTD.
            ADD CM-SALES-LAST-YTD TO GRAND-TOTAL-LAST-YTD.
            MOVE 1 TO SPACE-CONTROL.
-
        230-PRINT-HEADING-LINES.
 
            ADD 1 TO PAGE-COUNT.
-           MOVE PAGE-COUNT TO HL1-PAGE-NUMBER.
+           MOVE PAGE-COUNT     TO HL1-PAGE-NUMBER.
            MOVE HEADING-LINE-1 TO PRINT-AREA.
            WRITE PRINT-AREA.
            MOVE HEADING-LINE-2 TO PRINT-AREA.
+           WRITE PRINT-AREA.
+           MOVE SPACES TO PRINT-AREA.
            WRITE PRINT-AREA.
            MOVE HEADING-LINE-3 TO PRINT-AREA.
            WRITE PRINT-AREA.
@@ -242,5 +231,17 @@
 
            MOVE GRAND-TOTAL-THIS-YTD TO GTL-SALES-THIS-YTD.
            MOVE GRAND-TOTAL-LAST-YTD TO GTL-SALES-LAST-YTD.
+           COMPUTE CHANGE-AMOUNT =
+               GRAND-TOTAL-THIS-YTD - GRAND-TOTAL-LAST-YTD.
+           MOVE CHANGE-AMOUNT TO GTL-CHANGE-AMOUNT.
+           IF GRAND-TOTAL-LAST-YTD = ZERO
+               MOVE 999.9 TO GTL-CHANGE-PERCENT
+           ELSE
+               COMPUTE GTL-CHANGE-PERCENT ROUNDED =
+                   CHANGE-AMOUNT * 100 / GRAND-TOTAL-LAST-YTD
+                   ON SIZE ERROR
+                       MOVE 999.9 TO GTL-CHANGE-PERCENT.
+           MOVE DASHED-TOTAL-LINE to PRINT-AREA.
+           WRITE PRINT-AREA.
            MOVE GRAND-TOTAL-LINE TO PRINT-AREA.
            WRITE PRINT-AREA.
